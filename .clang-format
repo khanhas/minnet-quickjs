@@ -1,0 +1,12 @@
+---
+BasedOnStyle: LLVM
+UseTab: ForContinuationAndIndentation
+IndentWidth: 4
+TabWidth: 4
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 80
+AccessModifierOffset: -4
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: true
