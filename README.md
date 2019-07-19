@@ -26,7 +26,7 @@ import * as minnet from "./minnet-quickjs/minnet.so"
 
 ### `minnet.server(options)`: Create a WebSocket server and listen to host:port.  
 `options`: an object with following properties:
-- `port`: *number*, *optional*, *default = `0`*
+- `port`: *number*, *optional*, *default = `7981`*
 - `host`: *string*, *optional*, *default = `"localhost"`*
 - `onConnect`: *function*, *optional*  
     Calls when a client connects to server. Returns client's `MinnetWebsocket` instance in parameter. Syntax:
@@ -52,7 +52,7 @@ onMessage: (client_socket, message) => {
 
 ### `minnet.client(options)`: Create a WebSocket client and connect to a server.  
 `options`: an object with following properties:
-- `port`: *number*, *optional*, *default = `0`*
+- `port`: *number*, *optional*, *default = `7981`*
 - `host`: *string*, *optional*, *default = `"localhost"`*
 - `onConnect`: *function*, *optional*  
     Calls when client connects to server succesfully. Returns server's `MinnetWebsocket` instance in parameter. Syntax:

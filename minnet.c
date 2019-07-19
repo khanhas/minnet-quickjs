@@ -120,7 +120,7 @@ static JSValue minnet_ws_server(JSContext *ctx, JSValueConst this_val, int argc,
 								JSValueConst *argv)
 {
 	int a = 0;
-	int port = 0;
+	int port = 7981;
 	const char *host;
 	struct lws_context *context;
 	struct lws_context_creation_info info;
