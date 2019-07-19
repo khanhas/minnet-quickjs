@@ -76,6 +76,12 @@ onMessage: (server_socket, message) => {
 }
 ```
 
+#### `MinnetWebsocket` instance
+contains socket to a server or client. You can use these methods to communicate:
+- `.send(message)`: `message` can be string or ArrayBuffer
+- `.ping(data)`: `data` must be ArrayBuffer
+- `.pong(data)`: `data` must be ArrayBuffer
+
 ### `fetch(url)`: Get resources from `url`
 `url`: a string to download resources from.  
 Returns `MinnetResponse` object that you can use these methods:
