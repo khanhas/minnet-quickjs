@@ -49,6 +49,13 @@ onMessage: (client_socket, message) => {
     print("Received: ", message)
 }
 ```
+- `onPong`: *function*, *optional*  
+   Call when client sends a pong. Returns client's `MinnetWebsocket` instance and received ArrayBuffer data in parameters. Syntax:
+```javascript
+onPong: (client_socket, data) => {
+    print("Pongged: ", data)
+}
+```
 
 ### `minnet.client(options)`: Create a WebSocket client and connect to a server.  
 `options`: an object with following properties:
@@ -73,6 +80,13 @@ onClose: (why) => {
 ```javascript
 onMessage: (server_socket, message) => {
     print("Received: ", message)
+}
+```
+- `onPong`: *function*, *optional*  
+   Call when server sends a pong. Returns server's `MinnetWebsocket` instance and received ArrayBuffer data in parameters. Syntax:
+```javascript
+onPong: (server_socket, data) => {
+    print("Pongged: ", data)
 }
 ```
 
