@@ -84,9 +84,20 @@ contains socket to a server or client. You can use these methods to communicate:
 
 ### `fetch(url)`: Get resources from `url`
 `url`: a string to download resources from.  
-Returns `MinnetResponse` object that you can use these methods:
+Returns `MinnetResponse` object that you can use these  
+Methods:
 - `.text()`: Get body text as string
 - `.json()`: Get body text, parse as JSON and returns parsed object.
 - `.arrayBuffer()`: Get body as an `ArrayBuffer`
+
+Properties:
+- `.ok`: *boolean*, *Read-only*  
+    Whether the response was successful
+- `.url`: *string*, *Read-only*  
+    URL of the response
+- `.status`: *number*, *Read-only*  
+    Status code of the response
+- `.type`: *string*, *Read-only*  
+    Type of the response 
 
 Check out [example.mjs](./example.mjs)

@@ -432,9 +432,25 @@ static JSValue minnet_fetch(JSContext *ctx, JSValueConst this_val, int argc,
 	MinnetResponse *res;
 	uint8_t *buffer;
 	long bufSize;
+	long status;
+	char *type;
 
-	if (JS_IsString(argv[0]))
-		url = JS_ToCString(ctx, argv[0]);
+	JSValue resObj = JS_NewObjectClass(ctx, minnet_response_class_id);
+	if (JS_IsException(resObj))
+		return JS_EXCEPTION;
+
+	res = js_mallocz(ctx, sizeof(*res));
+
+	if (!res) {
+		JS_FreeValue(ctx, resObj);
+		return JS_EXCEPTION;
+	}
+
+	if (!JS_IsString(argv[0]))
+		return JS_EXCEPTION;
+
+	res->url = argv[0];
+	url = JS_ToCString(ctx, argv[0]);
 
 	curl = curl_easy_init();
 	if (!curl)
@@ -448,42 +464,42 @@ static JSValue minnet_fetch(JSContext *ctx, JSValueConst this_val, int argc,
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, fi);
 
 	curlRes = curl_easy_perform(curl);
+	if (curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status) == CURLE_OK)
+		res->status = JS_NewInt32(ctx, (int32_t)status);
+
+	if (curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &type) == CURLE_OK)
+		res->type = JS_NewString(ctx, type);
+
+	res->ok = JS_FALSE;
+
 	if (curlRes != CURLE_OK) {
-		curl_easy_cleanup(curl);
 		fprintf(stderr, "CURL failed: %s\n", curl_easy_strerror(curlRes));
-		return JS_EXCEPTION;
+		goto finish;
 	}
-	curl_easy_cleanup(curl);
 
 	bufSize = ftell(fi);
 	rewind(fi);
+
 	buffer = calloc(1, bufSize + 1);
 	if (!buffer) {
 		fclose(fi), fputs("memory alloc fails", stderr);
-		return JS_EXCEPTION;
+		goto finish;
 	}
 
 	/* copy the file into the buffer */
 	if (1 != fread(buffer, bufSize, 1, fi)) {
 		fclose(fi), free(buffer), fputs("entire read fails", stderr);
-		return JS_EXCEPTION;
+		goto finish;
 	}
 
 	fclose(fi);
 
-	JSValue resObj = JS_NewObjectClass(ctx, minnet_response_class_id);
-	if (JS_IsException(resObj))
-		return resObj;
-
-	res = js_mallocz(ctx, sizeof(*res));
+	res->ok = JS_TRUE;
 	res->buffer = buffer;
 	res->size = bufSize;
 
-	if (!res) {
-		JS_FreeValue(ctx, resObj);
-		return JS_EXCEPTION;
-	}
-
+finish:
+	curl_easy_cleanup(curl);
 	JS_SetOpaque(resObj, res);
 
 	return resObj;
@@ -493,7 +509,7 @@ static JSValue minnet_response_buffer(JSContext *ctx, JSValueConst this_val,
 									  int argc, JSValueConst *argv)
 {
 	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
-	if (res) {
+	if (res && res->buffer) {
 		JSValue val = JS_NewArrayBufferCopy(ctx, res->buffer, res->size);
 		return val;
 	}
@@ -505,7 +521,7 @@ static JSValue minnet_response_json(JSContext *ctx, JSValueConst this_val,
 									int argc, JSValueConst *argv)
 {
 	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
-	if (res)
+	if (res && res->buffer)
 		return JS_ParseJSON(ctx, (char *)res->buffer, res->size, "<input>");
 
 	return JS_EXCEPTION;
@@ -515,8 +531,47 @@ static JSValue minnet_response_text(JSContext *ctx, JSValueConst this_val,
 									int argc, JSValueConst *argv)
 {
 	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
-	if (res)
+	if (res && res->buffer)
 		return JS_NewStringLen(ctx, (char *)res->buffer, res->size);
+
+	return JS_EXCEPTION;
+}
+
+static JSValue minnet_response_getter_ok(JSContext *ctx, JSValueConst this_val)
+{
+	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
+	if (res)
+		return res->ok;
+
+	return JS_EXCEPTION;
+}
+
+static JSValue minnet_response_getter_url(JSContext *ctx, JSValueConst this_val)
+{
+	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
+	if (res)
+		return res->url;
+
+	return JS_EXCEPTION;
+}
+
+static JSValue minnet_response_getter_status(JSContext *ctx,
+											 JSValueConst this_val)
+{
+	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
+	if (res)
+		return res->status;
+
+	return JS_EXCEPTION;
+}
+
+static JSValue minnet_response_getter_type(JSContext *ctx,
+										   JSValueConst this_val)
+{
+	MinnetResponse *res = JS_GetOpaque(this_val, minnet_response_class_id);
+	if (res) {
+		return res->type;
+	}
 
 	return JS_EXCEPTION;
 }
